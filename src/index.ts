@@ -26,9 +26,6 @@ const createScene = () => {
 
     const light = new HemisphericLight("light", new Vector3(0, 1, 0), scene);
     light.intensity = 0.7;
-
-    // Test if the file is accessible
-    console.log("Attempting to load:", "assets/radford_model/radford.gltf");
     
     SceneLoader.ImportMesh("", "assets/radford_model/", "radford.gltf", scene, 
         (meshes) => {
