@@ -9,6 +9,23 @@ import "@babylonjs/loaders/glTF";
 const canvas = document.getElementById("renderCanvas") as HTMLCanvasElement;
 const engine = new Engine(canvas, true);
 
+const loadingScreen = document.getElementById("loadingScreen") as HTMLElement;
+const progressFill = document.getElementById("progressFill") as HTMLElement;
+const progressText = document.getElementById("progressText") as HTMLElement;
+
+const hideLoadingScreen = () => {
+    loadingScreen.classList.add("hidden");
+    setTimeout(() => {
+        loadingScreen.style.display = "none";
+    }, 500);
+};
+
+const updateProgress = (progress: number) => {
+    const percentage = Math.round(progress * 100);
+    progressFill.style.width = `${percentage}%`;
+    progressText.textContent = `${percentage}%`;
+};
+
 const createScene = () => {
     const scene = new Scene(engine);
 
@@ -29,13 +46,17 @@ const createScene = () => {
     
     SceneLoader.ImportMesh("", "assets/radford_model/", "radford.gltf", scene, 
         (meshes) => {
-            console.log("Model loaded successfully!", meshes);
+            hideLoadingScreen();
         }, 
         (progress) => {
-            console.log("Loading progress:", progress);
+            if (progress.lengthComputable) {
+                const loadedPercent = progress.loaded / progress.total;
+                updateProgress(loadedPercent);
+            }
         },
         (error) => {
             console.error("Detailed error:", error);
+            hideLoadingScreen();
         }
     );
 
