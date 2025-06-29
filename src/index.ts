@@ -1,56 +1,56 @@
-import { FreeCamera } from "@babylonjs/core/Cameras/freeCamera.js";
-import { Engine } from "@babylonjs/core/Engines/engine.js";
-import { HemisphericLight } from "@babylonjs/core/Lights/hemisphericLight.js";
-import { Vector3 } from "@babylonjs/core/Maths/math.vector.js";
-import { CreateGround } from "@babylonjs/core/Meshes/Builders/groundBuilder.js";
-import { CreateSphere } from "@babylonjs/core/Meshes/Builders/sphereBuilder.js";
-import { Scene } from "@babylonjs/core/scene.js";
+import { Engine } from "@babylonjs/core/Engines/engine";
+import { Scene } from "@babylonjs/core/scene";
+import { Vector3 } from "@babylonjs/core/Maths/math.vector";
+import { UniversalCamera } from "@babylonjs/core/Cameras/universalCamera";
+import { HemisphericLight } from "@babylonjs/core/Lights/hemisphericLight";
+import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
+import "@babylonjs/loaders/glTF";
 
-import { GridMaterial } from "@babylonjs/materials/grid/gridMaterial.js";
-
-// Get the canvas element from the DOM.
 const canvas = document.getElementById("renderCanvas") as HTMLCanvasElement;
+const engine = new Engine(canvas, true);
 
-// Associate a Babylon Engine to it.
-const engine = new Engine(canvas);
+const createScene = () => {
+    const scene = new Scene(engine);
 
-// Create our first scene.
-const scene = new Scene(engine);
+    const camera = new UniversalCamera("camera1", new Vector3(0, 5, -10), scene);
+    camera.setTarget(Vector3.Zero());
+    camera.attachControl(canvas, true);
 
-// This creates and positions a free camera (non-mesh)
-const camera = new FreeCamera("camera1", new Vector3(0, 5, -10), scene);
+    camera.keysUp = [87]; // W
+    camera.keysDown = [83]; // S
+    camera.keysLeft = [65]; // A
+    camera.keysRight = [68]; // D
 
-// This targets the camera to scene origin
-camera.setTarget(Vector3.Zero());
+    camera.speed = 0.5;
+    camera.angularSensibility = 2000;
 
-// This attaches the camera to the canvas
-camera.attachControl(canvas, true);
+    const light = new HemisphericLight("light", new Vector3(0, 1, 0), scene);
+    light.intensity = 0.7;
 
-// This creates a light, aiming 0,1,0 - to the sky (non-mesh)
-const light = new HemisphericLight("light1", new Vector3(0, 1, 0), scene);
+    // Test if the file is accessible
+    console.log("Attempting to load:", "assets/radford_model/radford.gltf");
+    
+    SceneLoader.ImportMesh("", "assets/radford_model/", "radford.gltf", scene, 
+        (meshes) => {
+            console.log("Model loaded successfully!", meshes);
+        }, 
+        (progress) => {
+            console.log("Loading progress:", progress);
+        },
+        (error) => {
+            console.error("Detailed error:", error);
+        }
+    );
 
-// Default intensity is 1. Let's dim the light a small amount
-light.intensity = 0.7;
+    return scene;
+};
 
-// Create a grid material
-const material = new GridMaterial("grid", scene);
+const scene = createScene();
 
-// Our built-in 'sphere' shape.
-const sphere = CreateSphere('sphere1', { segments: 16, diameter: 2 }, scene);
-
-// Move the sphere upward 1/2 its height
-sphere.position.y = 2;
-
-// Affect a material
-sphere.material = material;
-
-// Our built-in 'ground' shape.
-const ground = CreateGround('ground1', { width: 6, height: 6, subdivisions: 2 }, scene);
-
-// Affect a material
-ground.material = material;
-
-// Render every frame
 engine.runRenderLoop(() => {
-  scene.render();
+    scene.render();
+});
+
+window.addEventListener("resize", () => {
+    engine.resize();
 });
